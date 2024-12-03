@@ -1,17 +1,40 @@
-const mongoose = require('mongoose')
+const mongoose = require("mongoose");
+const {
+  db: { name, port, host },
+} = require("../configs/config.mongodb");
 
-//connect mongoose
-mongoose.connect( process.env.MONGO_URI).then( _ => console.log('Connected mongoose success!...'))
-.catch( err => console.error(`Error: connect:::`, err))
+const connectionString = `mongodb://${host}:${port}/${name}`;
+console.log("---connectionString", connectionString);
 
-// all executed methods log output to console
-mongoose.set('debug', true)
-    
-// disable colors in debug mode
-mongoose.set('debug', { color: false })
+class Database {
+  constructor() {
+    this.connect();
+  }
 
-// get mongodb-shell friendly output (ISODate)
-mongoose.set('debug', { shell: true })
+  // TODO using strategy pattern later
+  connect(type = "mongodb") {
+    // TODO replace by dev env later
+    if (1 === 1) {
+      mongoose.set("debug", true);
+      mongoose.set("debug", { color: true });
+    }
 
+    mongoose
+      .connect(connectionString)
+      .then(() => console.log("Connected to mongoDB"))
+      .catch((error) => {
+        console.log("Error connect to DB");
+      });
+  }
 
-module.exports = mongoose;
+  static getInstance() {
+    if (!this.instance) {
+      this.instance = new Database();
+    }
+    return this.instance;
+  }
+}
+
+const instanceMongoDB = Database.getInstance();
+
+module.exports = instanceMongoDB;
