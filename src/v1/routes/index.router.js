@@ -1,32 +1,14 @@
-const express = require('express');
+"use strict";
+
+const express = require("express");
 const router = express.Router();
 
-router.get('/checkstatus', (req, res, next) => {
-    res.status(200).json({
-        status: 'success',
-        message: 'api ok'
-    })
-})
+// router.get("/", (req, res) => {
+//   return res.status(200).json({
+//     message: "Wellcome back",
+//   });
+// });
 
-router.get('/api/users', (req, res, next) => {
-    res.status(200).json({
-        status: 'success api',
-        message: 'api ok',
-        metadata: [
-            {
-                name: 'anonystick',
-                age: 40
-            },
-            {
-                name: 'Ronaldo',
-                age: 39
-            },
-            {
-                name: 'Messi',
-                age: 37
-            }
-        ]
-    })
-})
+router.use("/v1/api", require("./access"));
 
 module.exports = router;
