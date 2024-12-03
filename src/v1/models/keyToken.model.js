@@ -1,6 +1,6 @@
 "use strict";
 
-const { Schema, default: mongoose } = require("mongoose");
+const { Schema, model } = require("mongoose");
 
 const DOCUMENT_NAME = "Key";
 const COLLECTION_NAME = "Keys";
@@ -31,4 +31,4 @@ var keyTokenSchema = new Schema(
   }
 );
 
-module.exports = mongoose.model(DOCUMENT_NAME, keyTokenSchema);
+module.exports = model(DOCUMENT_NAME, keyTokenSchema);
