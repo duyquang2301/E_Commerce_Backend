@@ -8,6 +8,7 @@ const HEADER = {
   API_KEY: "x-api-key",
   CLIENT_ID: "x-client-id",
   AUTHORIZATION: "authorization",
+  REFRESHTOKEN: "x-rf-token"
 };
 
 const createTokenPair = async (payload, publicKey, privateKey) => {
@@ -36,6 +37,50 @@ const createTokenPair = async (payload, publicKey, privateKey) => {
   } catch (error) { }
 };
 
+const authenticationV2 = asyncHandler(async (req, res, next) => {
+  const userId = req.headers[HEADER.CLIENT_ID];
+  if (!userId) {
+    throw new AuthFailureError("Error: Unauthorized");
+  }
+
+  const keyStore = await KeyTokenService.findByUserId(userId);
+  console.log("--------------------", keyStore)
+  if (!keyStore) {
+    throw new NotFoundError("Error: Key not found");
+  }
+
+  const refreshToken = req.headers[HEADER.REFRESHTOKEN];
+  if (refreshToken) {
+    try {
+      console.log("refreshToken-------------", refreshToken)
+      const decode = await JWT.verify(refreshToken, keyStore.privateKey);
+      if (userId !== decode.userId) throw new AuthFailureError("Error: Invalid UserId");
+      req.keyStore = keyStore;
+      req.user = decode;
+      req.refreshToken = refreshToken;
+      return next();
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  const accessToken = req.headers[HEADER.AUTHORIZATION];
+  if (!accessToken) {
+    throw new AuthFailureError("Error: Unauthorized");
+  }
+
+  try {
+    const decode = await JWT.verify(accessToken, keyStore.publicKey);
+    if (userId !== decode.userId)
+      throw new AuthFailureError("Error: Invalid UserId");
+
+    req.keyStore = keyStore;
+    return next();
+  } catch (error) {
+    throw error;
+  }
+});
+
 const authentication = asyncHandler(async (req, res, next) => {
   const userId = req.headers[HEADER.CLIENT_ID];
   if (!userId) {
@@ -54,16 +99,23 @@ const authentication = asyncHandler(async (req, res, next) => {
 
   try {
     const decode = await JWT.verify(accessToken, keyStore.publicKey);
-    if (userId !== decode.userId) throw new AuthFailureError("Error: Invalid UserId");
+    if (userId !== decode.userId)
+      throw new AuthFailureError("Error: Invalid UserId");
 
     req.keyStore = keyStore;
     return next();
   } catch (error) {
     throw error;
   }
-})
+});
+
+const verifiedJWT = async (token, keySecret) => {
+  return JWT.verify(token, keySecret);
+};
 
 module.exports = {
   createTokenPair,
-  authentication
+  authentication,
+  authenticationV2,
+  verifiedJWT,
 };
