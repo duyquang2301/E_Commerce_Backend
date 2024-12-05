@@ -29,6 +29,16 @@ class ProductController {
     }).send(res);
   }
 
+  unPublishProductByShop = async (req, res, next) => {
+    new CREATED({
+      message: "unPublishProductByShop success!!!",
+      metadata: await ProductFactory.unPublishProductByShop({
+        product_shop: req.user.userId,
+        product_id: req.params.id,
+      })
+    }).send(res);
+  }
+
 
   /**
    * @desc Get all drafts for shop
@@ -58,6 +68,13 @@ class ProductController {
         product_shop: req.user.userId
       })
     }).send(res)
+  }
+
+  findProductBySearch = async (req, res, next) => {
+    new SuccessResponse({
+      message: "Find Product By Search Success!!!",
+      metadata: await ProductFactory.findProductBySearch(req.params)
+    }).send(res);
   }
 }
 
