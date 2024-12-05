@@ -19,6 +19,17 @@ class ProductController {
   }
 
 
+  publishProductByShop = async (req, res, next) => {
+    new CREATED({
+      message: "publishProductByShop success!!!",
+      metadata: await ProductFactory.publishProductByShop({
+        product_shop: req.user.id,
+        product_id: req.params.id,
+      })
+    })
+  }
+
+
   /**
    * @desc Get all drafts for shop
    * @param {Number} limit
@@ -29,6 +40,21 @@ class ProductController {
     new SuccessResponse({
       message: "find draft list shop",
       metadata: await ProductFactory.findAllDraftsForShop({
+        product_shop: req.user.userId
+      })
+    }).send(res)
+  }
+
+  /**
+   * @desc Get all drafts for shop
+   * @param {Number} limit
+   * @param {Number} skip 
+   * @return {JSON}
+   */
+  findAllPublishForShop = async (req, res, next) => {
+    new SuccessResponse({
+      message: "find published list shop",
+      metadata: await ProductFactory.findAllPublishForShop({
         product_shop: req.user.userId
       })
     }).send(res)
