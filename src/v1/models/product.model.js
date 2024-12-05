@@ -47,7 +47,7 @@ var productSchema = new Schema({
     default: []
   },
   isDraf: { type: Boolean, default: true, index: true, select: false },
-  isPublish: { type: Boolean, default: false, index: true, select: false },
+  isPublished: { type: Boolean, default: false, index: true, select: false },
 }, {
   timestamps: true,
   collection: COLLECTION_NAME,

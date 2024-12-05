@@ -12,17 +12,23 @@ const findAllPublishForShop = async ({ query, limit, skip }) => {
 }
 
 const publicProductByShop = async ({ product_shop, product_id }) => {
+  console.log("product_shop:", product_shop);
+  console.log("product_id:", product_id);
   const foundShop = await product.findOne({
     product_shop: new Types.ObjectId(product_shop),
     _id: new Types.ObjectId(product_id)
   })
 
+  console.log("--------------------", foundShop)
+
   if (!foundShop) return null;
 
   foundShop.isDraf = false;
-  foundShop.isPublish = true;
+  foundShop.isPublished = true;
 
   const { modifiedCount } = await foundShop.update(foundShop);
+
+  console.log("--------------------modifiedCount", await foundShop.update(foundShop))
 
   return modifiedCount;
 }

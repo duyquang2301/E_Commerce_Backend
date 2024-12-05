@@ -23,10 +23,10 @@ class ProductController {
     new CREATED({
       message: "publishProductByShop success!!!",
       metadata: await ProductFactory.publishProductByShop({
-        product_shop: req.user.id,
+        product_shop: req.user.userId,
         product_id: req.params.id,
       })
-    })
+    }).send(res);
   }
 
 
