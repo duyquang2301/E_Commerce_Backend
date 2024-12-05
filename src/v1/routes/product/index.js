@@ -11,4 +11,6 @@ router.use(authenticationV2);
 
 router.post("/", asyncHandler(productController.createProduct));
 
+router.get("/draft/all", asyncHandler(productController.findAllDraftForShop))
+
 module.exports = router;
