@@ -188,11 +188,8 @@ class DiscountService {
     if (discount_min_order_value > 0) {
 
       totalOrder = products.reduce((acc, product) => {
-        console.log("------product", product.quantity, product.price)
         return acc + (product.quantity * product.price);
       }, 0);
-
-      console.log("-----------------totalOrder", totalOrder)
 
       if (totalOrder < discount_min_order_value) {
         throw new NotFoundError(
