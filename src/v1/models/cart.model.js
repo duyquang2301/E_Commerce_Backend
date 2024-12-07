@@ -15,11 +15,14 @@ var cartSchema = new Schema(
     cart_products: {
       type: Array, required: true, default: []
     },
-    cart_count_product: { type: Number, required: true },
+    cart_count_product: { type: Number, default: 0 },
     cart_userId: { type: Number, required: true }
   },
   {
-    timestamps: true,
+    timestamps: {
+      createdAt: "createdOn",
+      updatedAt: "modifiedOne"
+    },
     collection: COLLECTION_NAME,
   }
 );
