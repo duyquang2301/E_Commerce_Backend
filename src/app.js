@@ -6,9 +6,9 @@ const compression = require("compression");
 const { checkOverload } = require("./v1/helpers/check.connect");
 
 // test redis
-const productTest = require("./v1/test/product.test");
-productTest.purchaseProduct("product::001", 10)
-require("./v1/test/inventory.test")
+// const productTest = require("./v1/test/product.test");
+// productTest.purchaseProduct("product::001", 10)
+// require("./v1/test/inventory.test")
 // checkOverload();
 //init dbs
 require("./v1/databases/init.mongodb");
