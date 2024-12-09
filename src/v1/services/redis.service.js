@@ -3,37 +3,49 @@
 const redis = require("redis");
 const { promisify } = require("util");
 const { reservationInventory } = require("../models/repository/inventory.repository");
-const redisClient = redis.RedisClient();
 
-const pexpire = promisify(redisClient.pexpire).bind(redisClient);
-const setnxAsync = promisify(redisClient.setnx).bind(redisClient);
+// Initialize Redis client
+const redisClient = redis.createClient();
+redisClient.on("error", (err) => console.error("Redis Error:", err));
+
+// Promisify Redis commands
+const setAsync = promisify(redisClient.set).bind(redisClient);
+const delAsync = promisify(redisClient.del).bind(redisClient);
 
 const acquired = async (productId, quantity, cartId) => {
     const key = `lock_v2024_${productId}`;
     const retryTimes = 10;
-    const expireTime = 3000;
+    const expireTime = 3000; // milliseconds
 
-    for (let i = 0; i < retryTimes.length; i++) {
-        const result = await setnxAsync(key, expireTime);
-        console.log(`results::::`, result);
-
-        if (result === 1) {
-            // hanlde inventory
-            const isReservation = await reservationInventory({ productId, quantity, cartId });
-            if (isReservation.modifiedCount) {
-                await pexpire(key, expireTime);
-                return key;
+    for (let i = 0; i < retryTimes; i++) {
+        // Attempt to acquire lock
+        const result = await setAsync(key, cartId, "NX", "PX", expireTime);
+        if (result === "OK") {
+            try {
+                // Handle inventory reservation
+                const isReservation = await reservationInventory({ productId, quantity, cartId });
+                if (isReservation.modifiedCount) {
+                    return key; // Lock acquired and inventory updated
+                } else {
+                    await releaseLock(key); // Release lock if inventory update fails
+                    return null;
+                }
+            } catch (err) {
+                console.error("Error during reservation:", err);
+                await releaseLock(key);
+                return null;
             }
-            return null;
-        } else {
-            await new Promise((resolve) => setTimeout(resolve, 50));
         }
+
+        // Wait before retrying
+        await new Promise((resolve) => setTimeout(resolve, 50));
     }
+
+    return null; // Lock not acquired
 };
 
 const releaseLock = async (keyLock) => {
-    const deleteKey = promisify(redisClient.del).bind(redisClient);
-    return await deleteKey(keyLock);
+    return await delAsync(keyLock);
 };
 
 module.exports = {
