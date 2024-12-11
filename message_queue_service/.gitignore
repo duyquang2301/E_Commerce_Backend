@@ -1,0 +1,4 @@
+message_queue_service/.env
+/node_modules
+/package-lock.json
+/.vscode
