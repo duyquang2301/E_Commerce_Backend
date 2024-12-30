@@ -6,8 +6,12 @@ const {
   GetObjectCommand,
 } = require("../configs/s3.config");
 const cloudinary = require("../configs/cloudinary.config");
-const { Upload } = require("@aws-sdk/lib-storage");
-const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const crypto = require("crypto");
+// const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
+const { getSignedUrl } = require("@aws-sdk/cloudfront-signer");
+
+const randomImageName = () => crypto.randomBytes(16).toString("hex");
+const urlImagePublic = `https://d3u6dxhnfvvmea.cloudfront.net`;
 
 const uploadImageFromUrl = async () => {
   try {
@@ -45,32 +49,39 @@ const uploadSingleImage = async ({ path, folderName = "product/8049" }) => {
 /// aws
 const uploadImageToS3Bucket = async ({ file }) => {
   try {
-    const upload = new Upload({
-      client: s3,
-      params: {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: `images/${Date.now()}-${file.originalname}`,
-        Body: file.stream || file.buffer,
-        ContentType: file.mimetype,
-      },
-    });
-
-    upload.on("httpUploadProgress", (progress) => {
-      console.log("Progress:", progress);
-    });
-
-    const result = await upload.done();
-    console.log("Upload successful:", result);
-    const signedUrlCommand = new GetObjectCommand({
+    const imageName = randomImageName();
+    const command = new PutObjectCommand({
       Bucket: process.env.AWS_BUCKET_NAME,
-      Key: result.Key,
+      Key: imageName,
+      Body: file.buffer,
+      ContentType: file.mimetype,
     });
-    const signedUrl = await getSignedUrl(s3, signedUrlCommand, {
-      expiresIn: 3600,
+
+    const result = await s3.send(command);
+    console.log("Upload successful:", result);
+
+    // const signedUrlCommand = new GetObjectCommand({
+    //   Bucket: process.env.AWS_BUCKET_NAME,
+    //   Key: imageName,
+    // });
+
+    // const signedUrl = await getSignedUrl(s3, signedUrlCommand, {
+    //   expiresIn: 3600,
+    // });
+
+    const signedUrl = getSignedUrl({
+      url: `${urlImagePublic}/${imageName}`,
+      keyPairId: "K3ICLILXK5205Z",
+      dateLessThan: new Date(Date.now() + 1000 * 60),
+      privateKey: process.env.AWS_BUCKET_PUBLIC_KEY_ID,
     });
+
     console.log("Generated signed URL:", signedUrl);
 
-    return signedUrl;
+    return {
+      url: signedUrl,
+      result,
+    };
   } catch (error) {
     console.error("Error uploading image:", error.message);
     throw new Error("Failed to upload image to S3.");
