@@ -1,7 +1,13 @@
 "use strict";
 
-const { PutObjectCommand, s3 } = require("../configs/s3.config");
+const {
+  PutObjectCommand,
+  s3,
+  GetObjectCommand,
+} = require("../configs/s3.config");
 const cloudinary = require("../configs/cloudinary.config");
+const { Upload } = require("@aws-sdk/lib-storage");
+const { getSignedUrl } = require("@aws-sdk/s3-request-presigner");
 
 const uploadImageFromUrl = async () => {
   try {
@@ -39,19 +45,35 @@ const uploadSingleImage = async ({ path, folderName = "product/8049" }) => {
 /// aws
 const uploadImageToS3Bucket = async ({ file }) => {
   try {
-    const command = new PutObjectCommand({
-      Bucket: process.env.AWS_BUCKET_NAME,
-      Key: file.originalname,
-      Body: file.buffer,
-      ContentType: "image/jpeg",
+    const upload = new Upload({
+      client: s3,
+      params: {
+        Bucket: process.env.AWS_BUCKET_NAME,
+        Key: `images/${Date.now()}-${file.originalname}`,
+        Body: file.stream || file.buffer,
+        ContentType: file.mimetype,
+      },
     });
 
-    const result = await s3.send(command);
-    console.log("Upload successful:", result);
+    upload.on("httpUploadProgress", (progress) => {
+      console.log("Progress:", progress);
+    });
 
-    return result;
+    const result = await upload.done();
+    console.log("Upload successful:", result);
+    const signedUrlCommand = new GetObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: result.Key,
+    });
+    const signedUrl = await getSignedUrl(s3, signedUrlCommand, {
+      expiresIn: 3600,
+    });
+    console.log("Generated signed URL:", signedUrl);
+
+    return signedUrl;
   } catch (error) {
-    console.error("Error uploading image:::", error.message);
+    console.error("Error uploading image:", error.message);
+    throw new Error("Failed to upload image to S3.");
   }
 };
 
