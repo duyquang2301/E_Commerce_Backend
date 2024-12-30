@@ -1,6 +1,6 @@
 "use strict";
 
-const { Upload, s3 } = require("../configs/s3.config");
+const { PutObjectCommand, s3 } = require("../configs/s3.config");
 const cloudinary = require("../configs/cloudinary.config");
 
 const uploadImageFromUrl = async () => {
@@ -39,22 +39,14 @@ const uploadSingleImage = async ({ path, folderName = "product/8049" }) => {
 /// aws
 const uploadImageToS3Bucket = async ({ file }) => {
   try {
-    const upload = new Upload({
-      client: s3,
-      params: {
-        Bucket: process.env.AWS_BUCKET_NAME,
-        Key: file.originalname,
-        Body: file.buffer,
-        ContentType: "image/jpeg",
-      },
+    const command = new PutObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME,
+      Key: file.originalname,
+      Body: file.buffer,
+      ContentType: "image/jpeg",
     });
 
-    upload.on("httpUploadProgress", (progress) => {
-      console.log(`Uploaded ${progress.loaded} of ${progress.total} bytes`);
-    });
-
-    const result = await upload.done();
-
+    const result = await s3.send(command);
     console.log("Upload successful:", result);
 
     return result;
