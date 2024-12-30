@@ -71,7 +71,7 @@ const uploadImageToS3Bucket = async ({ file }) => {
 
     const signedUrl = getSignedUrl({
       url: `${urlImagePublic}/${imageName}`,
-      keyPairId: "K3ICLILXK5205Z",
+      keyPairId: process.env.AWS_KEY_PAIR_ID,
       dateLessThan: new Date(Date.now() + 1000 * 60),
       privateKey: process.env.AWS_BUCKET_PUBLIC_KEY_ID,
     });
