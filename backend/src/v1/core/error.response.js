@@ -1,11 +1,15 @@
 "use strict";
 
 const { StatusCodes, ReasonPhrases } = require('../utils/httpStatusCode');
+const myLogger = require('../loggers/logger')
 
 class ErrorResponse extends Error {
   constructor(message, status) {
     super(message);
     this.status = status;
+    this.now = Date.now();
+
+    // myLogger.error(this.message, ['api/login', 'v1a1371637163', {}])
   }
 }
 

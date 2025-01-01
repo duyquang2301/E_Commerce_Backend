@@ -1,9 +1,11 @@
 const express = require("express");
 const app = express();
+const { v4: uuidv4 } = require('uuid');
 const helmet = require("helmet");
 const morgan = require("morgan");
 const compression = require("compression");
 const { checkOverload } = require("./v1/helpers/check.connect");
+const myLogger = require("./v1/loggers/logger")
 
 // test redis
 // const productTest = require("./v1/test/product.test");
@@ -28,6 +30,17 @@ app.use(
   })
 );
 
+app.use((req, res, next) => {
+  const requestId = req.headers["x-request-id"];
+  req.requestId = requestId ? requestId : uuidv4();
+  myLogger.log(`input params:::${req.method}`, [
+    req.path,
+    { requestId: req.requestId },
+    req.method === 'POST' ? req.body : req.query
+  ])
+  next();
+});
+
 //router
 app.use(require("./v1/routes/index.router"));
 
@@ -41,11 +54,20 @@ app.use((req, res, next) => {
 
 // error handler middleware
 app.use((error, req, res, next) => {
+  const resMessage = `${error.status} - ${Date.now() - error.now}ms - Response: ${JSON.stringify(error)}`;
+  myLogger.error(resMessage, [
+    req.path,
+    { requestId: req.requestId },
+    {
+      message: error.message,
+    }
+  ])
+
   res.status(error.status || 500).send({
     error: {
       status: error.status || 500,
       message: error.message || "Internal Server Error",
-      stack: error.stack
+      // stack: error.stack
     },
   });
 });
