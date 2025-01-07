@@ -8,28 +8,28 @@ const getInfoData = ({ fields = [], object = {} }) => {
 };
 
 const getSelectData = (select = []) => {
-  return Object.fromEntries(select.map(el => [el, 1]))
-}
+  return Object.fromEntries(select.map((el) => [el, 1]));
+};
 
 const unSelectData = (select = []) => {
-  return Object.fromEntries(select.map(el => [el, 0]))
-}
+  return Object.fromEntries(select.map((el) => [el, 0]));
+};
 
-const removeUndefinedObject = object => {
-  Object.keys(object).forEach(item => {
+const removeUndefinedObject = (object) => {
+  Object.keys(object).forEach((item) => {
     if (object[item] == null) {
       delete object[item];
     }
-  })
+  });
 
-  return object
-}
+  return object;
+};
 
 const updateNestedObjectParse = (object) => {
   const final = {};
 
   for (const [key, value] of Object.entries(object)) {
-    if (typeof value === 'object' && !Array.isArray(value)) {
+    if (typeof value === "object" && !Array.isArray(value)) {
       const nestedObject = updateNestedObjectParse(value);
       for (const [nestedKey, nestedValue] of Object.entries(nestedObject)) {
         final[`${key}.${nestedKey}`] = nestedValue;
@@ -42,15 +42,18 @@ const updateNestedObjectParse = (object) => {
   return final;
 };
 
-const convertToObjectIdMongodb = id => Types.ObjectId(id)
-
+const convertToObjectIdMongodb = (id) => Types.ObjectId(id);
 
 const replacePlaceholder = (template, params) => {
-  Object.keys(params).forEach(k => {
+  Object.keys(params).forEach((k) => {
     const placeholder = `{{${k}}}`;
-    template = template.replace(new RegExp(placeholder, 'g'), params[k]);
-  })
-}
+    template = template.replace(new RegExp(placeholder, "g"), params[k]);
+  });
+};
+
+const randomProductId = (_) => {
+  return Math.floor(Math.random() * 899999 + 100000);
+};
 
 module.exports = {
   getInfoData,
@@ -59,5 +62,6 @@ module.exports = {
   removeUndefinedObject,
   updateNestedObjectParse,
   convertToObjectIdMongodb,
-  replacePlaceholder
+  replacePlaceholder,
+  randomProductId,
 };
