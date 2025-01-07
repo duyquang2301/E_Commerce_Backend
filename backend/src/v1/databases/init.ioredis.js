@@ -1,8 +1,8 @@
-const redis = require('redis');
+const Redis = require('ioredis');
 const { ErrorResponse } = require('../core/error.response');
 
 
-let client = {}, statusConnectRedis = {
+let clients = {}, statusConnectRedis = {
     CONNECT: 'connect',
     END: 'end',
     RECONNECT: 'reconnecting',
@@ -37,19 +37,30 @@ const handleEventConnection = ({ connectionRedis }) => {
     });
 }
 
-const initRedis = () => {
-    const instanceRedis = redis.createClient()
-    client.instanceConnect = instanceRedis
-    handleEventConnection({ connectionRedis: instanceRedis })
+const init = ({
+    IOREDIS_HOST_ENABLED,
+    IOREDIS_HOST = process.env.REDIS_CACHE_HOST,
+    IOREDIS_PORT = 6379,
+}) => {
+
+    if (IOREDIS_HOST_ENABLED === true) {
+        const instanceRedis = new Redis({
+            host: IOREDIS_HOST,
+            port: IOREDIS_PORT
+        })
+        clients.instanceConnect = instanceRedis
+        handleEventConnection({ connectionRedis: instanceRedis })
+    }
+
 }
 
-const getRedis = () => client
+const getIORedis = () => clients
 
 
 const closeRedis = () => { }
 
 module.exports = {
-    initRedis,
-    getRedis,
+    init,
+    getIORedis,
     closeRedis
 }

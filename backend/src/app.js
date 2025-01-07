@@ -16,6 +16,11 @@ const myLogger = require("./v1/loggers/logger")
 require("./v1/databases/init.mongodb");
 // require('./v1/databases/init.redis')
 
+// ioredis
+const ioredis = require('./v1/databases/init.ioredis')
+ioredis.init({
+  IOREDIS_HOST_ENABLED: true
+})
 //user middleware
 app.use(helmet());
 app.use(morgan("combined"));
