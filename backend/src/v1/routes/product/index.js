@@ -4,6 +4,7 @@ const express = require("express");
 const asyncHandler = require("../../helpers/asyncHandler");
 const { authentication, authenticationV2 } = require("../../auth/authUtil");
 const productController = require("../../controllers/product.controller");
+const { readCache } = require("../../middlewares/cache.middleware");
 const router = express.Router();
 
 router.get(
@@ -12,6 +13,7 @@ router.get(
 );
 router.get(
   "/sku/select_variations",
+  readCache,
   asyncHandler(productController.FindOneSku)
 );
 router.get("/spu/get_spu_info", asyncHandler(productController.FindOneSpu));
